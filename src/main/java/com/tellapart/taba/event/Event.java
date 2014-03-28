@@ -14,14 +14,16 @@
  */
 package com.tellapart.taba.event;
 
+import com.tellapart.taba.event.EventPayload;
+
 /**
  * Wrapper for Taba Event tuples.
  */
 public class Event {
 
-  public final String tabType;
-  public final long timestamp;
-  public final EventPayload payload;
+  protected final String tabType;
+  protected final long timestamp;
+  protected final EventPayload payload;
 
   /**
    * @param tabType   TabType string.
@@ -32,6 +34,18 @@ public class Event {
     this.tabType = tabType;
     this.timestamp = timestamp;
     this.payload = payload;
+  }
+
+  public String getTabType() {
+    return tabType;
+  }
+
+  public long getTimestamp() {
+    return timestamp;
+  }
+
+  public EventPayload getPayload() {
+    return payload;
   }
 
 }

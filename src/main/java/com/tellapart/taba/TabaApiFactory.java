@@ -17,6 +17,9 @@ package com.tellapart.taba;
 import com.google.common.base.Preconditions;
 import com.tellapart.taba.engine.DefaultClientEngine;
 import com.tellapart.taba.engine.TabaClientEngine;
+import org.apache.http.impl.client.HttpClients;
+
+import java.util.concurrent.Executors;
 
 /**
  * Singleton management for the TabaApi, for use cases without dependency
@@ -32,7 +35,12 @@ public class TabaApiFactory {
 
   public static synchronized void initialize(TabaClientProperties properties) {
     Preconditions.checkState(engine == null, "Already initialized.");
-    TabaClientEngine clientEngine = new DefaultClientEngine(properties);
+
+    TabaClientEngine clientEngine = new DefaultClientEngine(
+        properties,
+        HttpClients.createDefault(),
+        Executors.newScheduledThreadPool(1));
+
     initialize(clientEngine);
   }
 

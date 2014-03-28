@@ -23,7 +23,6 @@ import com.tellapart.taba.event.Event;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -103,14 +102,14 @@ public class Transport {
   protected static String encodeEvent(Event event, JsonFactory factory) throws IOException {
     ByteArrayOutputStream encodedPayload = new ByteArrayOutputStream();
     JsonGenerator payloadGenerator = factory.createGenerator(encodedPayload);
-    event.payload.serialize(payloadGenerator);
+    event.getPayload().serialize(payloadGenerator);
     payloadGenerator.close();
 
     ByteArrayOutputStream encodedEvent = new ByteArrayOutputStream();
     JsonGenerator eventGenerator = factory.createGenerator(encodedEvent);
     eventGenerator.writeStartArray();
-    eventGenerator.writeString(event.tabType);
-    eventGenerator.writeNumber(event.timestamp);
+    eventGenerator.writeString(event.getTabType());
+    eventGenerator.writeNumber(event.getTimestamp());
     eventGenerator.writeString(encodedPayload.toString());
     eventGenerator.writeEndArray();
     eventGenerator.close();

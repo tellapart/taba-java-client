@@ -61,17 +61,21 @@ public class DefaultClientEngine implements TabaClientEngine {
   private long bufferSize;
 
   @Inject
-  public DefaultClientEngine(TabaClientProperties properties) {
+  public DefaultClientEngine(
+      TabaClientProperties properties,
+      CloseableHttpClient client,
+      ScheduledExecutorService executor
+  ) {
     this.clientId = properties.getClientId();
     this.flushPeriod = properties.getFlushPeriod();
     this.eventPostUrl = properties.getPostUrl();
 
+    httpClient = client;
+    flushScheduler = executor;
+
     // Buffer to hold events until they are flushed.
     buffer = new HashMap<>();
     bufferSize = 0;
-
-    httpClient = HttpClients.createDefault();
-    flushScheduler = Executors.newScheduledThreadPool(1);
 
   }
 
