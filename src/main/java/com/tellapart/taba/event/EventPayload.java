@@ -33,6 +33,6 @@ public interface EventPayload {
    * @throws JsonGenerationException
    * @throws IOException
    */
-  public void Serialize(JsonGenerator generator) throws JsonGenerationException, IOException;
+  public void serialize(JsonGenerator generator) throws JsonGenerationException, IOException;
 
 }

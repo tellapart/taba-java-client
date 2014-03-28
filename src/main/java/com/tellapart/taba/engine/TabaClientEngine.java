@@ -16,6 +16,9 @@ package com.tellapart.taba.engine;
 
 import com.tellapart.taba.event.EventPayload;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 /**
  * Interface for Client Engine objects, which are responsible for taking Record
  * Event requests, and sending them to a remote service (i.e. a Taba Agent or
@@ -24,14 +27,16 @@ import com.tellapart.taba.event.EventPayload;
 public interface TabaClientEngine {
 
   /**
-   * Start this Client Engine, starting any background operations.
+   * start this Client Engine, starting any background operations.
    */
-  public void Start();
+  @PostConstruct
+  public void start();
 
   /**
-   * Stop any background operations.
+   * stop any background operations.
    */
-  public void Stop();
+  @PreDestroy
+  public void stop();
 
   /**
    * Record a Taba Event.
@@ -40,6 +45,6 @@ public interface TabaClientEngine {
    * @param type    The TabType string to record.
    * @param payload The event to encode.
    */
-  public void RecordEvent(String name, String type, EventPayload payload);
+  public void recordEvent(String name, String type, EventPayload payload);
 
 }

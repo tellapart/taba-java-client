@@ -26,37 +26,37 @@ import java.math.BigInteger;
  */
 public class EventNumberPayload implements EventPayload {
 
-  private Number mNumber;
+  private Number payload;
 
   public EventNumberPayload(Number value) {
-    mNumber = value;
+    payload = value;
   }
 
   @Override
-  public void Serialize(JsonGenerator generator) throws JsonGenerationException, IOException {
-    if(mNumber instanceof Integer) {
-      generator.writeNumber((Integer)mNumber);
+  public void serialize(JsonGenerator generator) throws JsonGenerationException, IOException {
+    if(payload instanceof Integer) {
+      generator.writeNumber((Integer) payload);
     }
-    else if(mNumber instanceof Long) {
-      generator.writeNumber((Long)mNumber);
+    else if(payload instanceof Long) {
+      generator.writeNumber((Long) payload);
     }
-    else if(mNumber instanceof Short) {
-      generator.writeNumber((Short)mNumber);
+    else if(payload instanceof Short) {
+      generator.writeNumber((Short) payload);
     }
-    else if(mNumber instanceof Float) {
-      generator.writeNumber((Float)mNumber);
+    else if(payload instanceof Float) {
+      generator.writeNumber((Float) payload);
     }
-    else if(mNumber instanceof Double) {
-      generator.writeNumber((Double)mNumber);
+    else if(payload instanceof Double) {
+      generator.writeNumber((Double) payload);
     }
-    else if(mNumber instanceof Byte) {
-      generator.writeNumber((Byte)mNumber);
+    else if(payload instanceof Byte) {
+      generator.writeNumber((Byte) payload);
     }
-    else if(mNumber instanceof BigInteger) {
-      generator.writeNumber((BigInteger)mNumber);
+    else if(payload instanceof BigInteger) {
+      generator.writeNumber((BigInteger) payload);
     }
-    else if(mNumber instanceof BigDecimal) {
-      generator.writeNumber((BigDecimal)mNumber);
+    else if(payload instanceof BigDecimal) {
+      generator.writeNumber((BigDecimal) payload);
     }
   }
 

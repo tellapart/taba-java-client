@@ -17,6 +17,7 @@ package com.tellapart.taba;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
 import com.tellapart.taba.event.Event;
 
 import java.io.ByteArrayOutputStream;
@@ -32,6 +33,11 @@ import java.util.Map;
  */
 public class Transport {
 
+  protected static final Joiner partJoiner = Joiner.on('\n');
+
+  // Static only class.
+  protected Transport() {}
+
   /**
    * Encode the events for this client id.
    *
@@ -40,10 +46,8 @@ public class Transport {
    *
    * @return A string denoting the event to be uploaded to the Taba Agent.
    */
-  public static String Encode(String clientId, Map<String, List<Event>> nameEventsMap) {
-    Map<String, Map<String, List<Event>>> clientToNameToEvents = new HashMap<>();
-    clientToNameToEvents.put(clientId, nameEventsMap);
-    return EncodeMultiClient(clientToNameToEvents);
+  public static String encode(String clientId, Map<String, List<Event>> nameEventsMap) {
+    return encodeMultiClient(ImmutableMap.of(clientId, nameEventsMap));
   }
 
   /**
@@ -53,7 +57,7 @@ public class Transport {
    *
    * @return A string denoting the event to be uploaded to the Taba Agent.
    */
-  public static String EncodeMultiClient(
+  public static String encodeMultiClient(
       Map<String, Map<String, List<Event>>> clientToNameToEvents) {
     List<String> parts = new ArrayList<>();
 
@@ -74,21 +78,7 @@ public class Transport {
         parts.add(name);
         for (Event event : events) {
           try {
-            ByteArrayOutputStream encodedPayload = new ByteArrayOutputStream();
-            JsonGenerator payloadGenerator = factory.createGenerator(encodedPayload);
-            event.payload.Serialize(payloadGenerator);
-            payloadGenerator.close();
-
-            ByteArrayOutputStream encodedEvent = new ByteArrayOutputStream();
-            JsonGenerator eventGenerator = factory.createGenerator(encodedEvent);
-            eventGenerator.writeStartArray();
-            eventGenerator.writeString(event.tabType);
-            eventGenerator.writeNumber(event.timestamp);
-            eventGenerator.writeString(encodedPayload.toString());
-            eventGenerator.writeEndArray();
-            eventGenerator.close();
-
-            parts.add(encodedEvent.toString());
+            parts.add(encodeEvent(event, factory));
           } catch (IOException e) {
             e.printStackTrace();
           }
@@ -98,7 +88,34 @@ public class Transport {
       parts.add("");
     }
     parts.add("");
-    return Joiner.on('\n').join(parts);
+
+    return partJoiner.join(parts);
+  }
+
+  /**
+   * Encode a single Event.
+   *
+   * @param event   Event to encode.
+   * @param factory
+   *
+   * @return  Encoded event String.
+   */
+  protected static String encodeEvent(Event event, JsonFactory factory) throws IOException {
+    ByteArrayOutputStream encodedPayload = new ByteArrayOutputStream();
+    JsonGenerator payloadGenerator = factory.createGenerator(encodedPayload);
+    event.payload.serialize(payloadGenerator);
+    payloadGenerator.close();
+
+    ByteArrayOutputStream encodedEvent = new ByteArrayOutputStream();
+    JsonGenerator eventGenerator = factory.createGenerator(encodedEvent);
+    eventGenerator.writeStartArray();
+    eventGenerator.writeString(event.tabType);
+    eventGenerator.writeNumber(event.timestamp);
+    eventGenerator.writeString(encodedPayload.toString());
+    eventGenerator.writeEndArray();
+    eventGenerator.close();
+
+    return encodedEvent.toString();
   }
 
 }

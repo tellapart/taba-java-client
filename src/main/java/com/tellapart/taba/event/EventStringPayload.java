@@ -24,15 +24,15 @@ import java.io.IOException;
  */
 public class EventStringPayload implements EventPayload {
 
-  private String mString;
+  private String payloadString;
 
   public EventStringPayload(String value) {
-    mString = value;
+    payloadString = value;
   }
 
   @Override
-  public void Serialize(JsonGenerator generator) throws JsonGenerationException, IOException {
-    generator.writeString(mString);
+  public void serialize(JsonGenerator generator) throws JsonGenerationException, IOException {
+    generator.writeString(payloadString);
   }
 
 }

@@ -16,34 +16,41 @@ package com.tellapart.taba;
 
 import com.tellapart.taba.engine.DummyClientEngine;
 import com.tellapart.taba.engine.TabaClientEngine;
-import org.junit.Assert;
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 /**
  * Test cases for factory style initialization.
  */
 public class TabaApiFactoryTest {
 
+  @AfterMethod
+  public void resetApiFactory() {
+    TabaApiFactory.engine = null;
+    TabaApiFactory.api = null;
+  }
+
   @Test
   public void testFactoryPropertiesInitialization() {
-    TabaClientProperties properties = new TabaClientProperties();
-    properties.SetClientId("client_id");
-    properties.SetFlushPeriod(1);
-    properties.SetPostUrl("http://localhost:1234/post");
+    TabaClientProperties properties = new TabaClientProperties(
+        "client_id", 1, "http://localhost:1234/post");
 
-    TabaApiFactory.Initialize(properties);
+    TabaApiFactory.initialize(properties);
 
-    TabaApi taba = TabaApiFactory.GetApi();
+    TabaApi taba = TabaApiFactory.getApi();
     Assert.assertNotNull(taba);
-
   }
 
   @Test
   public void testFactoryEngineInitialization() {
-    TabaClientEngine engine = new DummyClientEngine("client_id", 1, "http://localhost:1234/post");
-    TabaApiFactory.Initialize(engine);
+    TabaClientProperties properties = new TabaClientProperties(
+        "client_id", 1, "http://localhost:1234/post");
+    TabaClientEngine engine = new DummyClientEngine(properties);
+    TabaApiFactory.initialize(engine);
 
-    TabaApi taba = TabaApiFactory.GetApi();
+    TabaApi taba = TabaApiFactory.getApi();
     Assert.assertNotNull(taba);
   }
 

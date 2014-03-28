@@ -26,17 +26,18 @@ public enum TabType {
   CounterGroup ("CounterGroup"),
   PercentileGroup ("PercentileGroup");
 
-  private final String mName;
+  private final String name;
   private TabType(String name) {
-    mName = name;
+    this.name = name;
   }
 
   public boolean equalsName(String otherName){
-    return (otherName == null) ? false : mName.equals(otherName);
+    return name.equals(otherName);
   }
 
+  @Override
   public String toString(){
-    return mName;
+    return name;
   }
 
 }

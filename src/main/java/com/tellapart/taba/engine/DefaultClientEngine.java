@@ -14,15 +14,20 @@
  */
 package com.tellapart.taba.engine;
 
+import com.tellapart.taba.TabaClientProperties;
 import com.tellapart.taba.event.Event;
 import com.tellapart.taba.event.EventPayload;
 import com.tellapart.taba.Transport;
+import org.apache.http.annotation.GuardedBy;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -40,91 +45,101 @@ import java.util.concurrent.TimeUnit;
  * Server.
  */
 public class DefaultClientEngine implements TabaClientEngine {
+  private final Logger logger = LoggerFactory.getLogger(DefaultClientEngine.class);
 
-  private String mClientId;
-  private int mFlushPeriod;
-  private String mEventPostUrl;
-  private ScheduledExecutorService mFlushScheduler;
-  private CloseableHttpClient mHttpClient;
-  private final Object mLock = new Object();
+  private final String clientId;
+  private final int flushPeriod;
+  private final String eventPostUrl;
 
-  private Map<String, List<Event>> mBuffer;
-  private long mBufferSize;
-  private ScheduledFuture<?> mFlusherHandle;
+  private CloseableHttpClient httpClient;
 
-  public DefaultClientEngine(String clientId, int flushPeriod, String eventPostUrl) {
-    mClientId = clientId;
-    mFlushPeriod = flushPeriod;
-    mEventPostUrl = eventPostUrl;
+  private final ScheduledExecutorService flushScheduler;
+  private ScheduledFuture<?> flusherHandle;
+
+  private final Object lock = new Object();
+  private @GuardedBy("lock") Map<String, List<Event>> buffer;
+  private long bufferSize;
+
+  @Inject
+  public DefaultClientEngine(TabaClientProperties properties) {
+    this.clientId = properties.getClientId();
+    this.flushPeriod = properties.getFlushPeriod();
+    this.eventPostUrl = properties.getPostUrl();
 
     // Buffer to hold events until they are flushed.
-    mBuffer = new HashMap<>();
-    mBufferSize = 0;
+    buffer = new HashMap<>();
+    bufferSize = 0;
 
-    mHttpClient = HttpClients.createDefault();
-    mFlushScheduler = Executors.newScheduledThreadPool(1);
+    httpClient = HttpClients.createDefault();
+    flushScheduler = Executors.newScheduledThreadPool(1);
 
   }
 
   @Override
-  public void Start() {
+  public synchronized void start() {
+    if(flusherHandle != null) {
+      throw new IllegalStateException("Cannot call start multiple times.");
+    }
+
     final Runnable flusher = new Runnable() {
       @Override
       public void run() {
-        Flush();
+        flush();
       }
     };
-    mFlusherHandle = mFlushScheduler.scheduleAtFixedRate(
-        flusher, mFlushPeriod, mFlushPeriod, TimeUnit.SECONDS);
 
+    flusherHandle = flushScheduler.scheduleAtFixedRate(
+        flusher, flushPeriod, flushPeriod, TimeUnit.SECONDS);
   }
 
   @Override
-  public void Stop() {
+  public void stop() {
     // Cancel the scheduled runnables.
-    mFlusherHandle.cancel(false);
+    flusherHandle.cancel(false);
 
     // Disable new tasks from being submitted and clean up the scheduler;
-    mFlushScheduler.shutdown();
+    flushScheduler.shutdown();
 
     try {
       // Wait for existing tasks to terminate.
-      if (!mFlushScheduler.awaitTermination(mFlushPeriod, TimeUnit.SECONDS)) {
-        mFlushScheduler.shutdownNow();
+      if (!flushScheduler.awaitTermination(flushPeriod, TimeUnit.SECONDS)) {
+        flushScheduler.shutdownNow();
         // Wait for tasks to respond to being canceled.
-        if (!mFlushScheduler.awaitTermination(mFlushPeriod, TimeUnit.SECONDS)) {
-          System.err.println("Taba Client flush scheduler did not terminate.");
+        if (!flushScheduler.awaitTermination(flushPeriod, TimeUnit.SECONDS)) {
+          logger.error("Taba Client flush scheduler did not terminate.");
         }
       }
 
       // Process any leftover buffer synchronously.
-      Flush();
+      flush();
 
-      // Close any HTTP sessions.
-      mHttpClient.close();
 
     } catch (InterruptedException e) {
       // Re-cancel if current thread also interrupted.
-      mFlushScheduler.shutdownNow();
+      flushScheduler.shutdownNow();
 
       // Preserve interrupt status.
       Thread.currentThread().interrupt();
+    }
 
-    } catch (IOException e) {
-      e.printStackTrace();
+    // Close any HTTP sessions.
+    try {
+      httpClient.close();
+    } catch(IOException e) {
+      logger.error("Error stopping Taba Client HTTP Client");
     }
 
   }
 
   @Override
-  public void RecordEvent(String name, String type, EventPayload payload) {
+  public void recordEvent(String name, String type, EventPayload payload) {
     // Lock while we record the event into the buffer.
-    synchronized (mLock) {
-      if (!mBuffer.containsKey(name)) {
-        mBuffer.put(name, new ArrayList<Event>());
+    synchronized (lock) {
+      if (!buffer.containsKey(name)) {
+        buffer.put(name, new ArrayList<Event>());
       }
-      mBuffer.get(name).add(new Event(type, System.currentTimeMillis() / 1000, payload));
-      mBufferSize += 1;
+      buffer.get(name).add(new Event(type, System.currentTimeMillis() / 1000, payload));
+      bufferSize += 1;
     }
 
   }
@@ -132,21 +147,21 @@ public class DefaultClientEngine implements TabaClientEngine {
   /**
    * Flush all buffered Events to the remote end-point.
    */
-  protected void Flush() {
-    if (mBufferSize == 0) {
+  protected void flush() {
+    if (bufferSize == 0) {
       return;
     }
 
     // Clear the existing buffer.
     Map<String, List<Event>> flushBuffer;
-    synchronized (mLock) {
-      flushBuffer = mBuffer;
-      mBuffer = new HashMap<>();
-      mBufferSize = 0;
+    synchronized (lock) {
+      flushBuffer = buffer;
+      buffer = new HashMap<>();
+      bufferSize = 0;
     }
 
-    String body = Transport.Encode(mClientId, flushBuffer);
-    HttpPost httpPost = new HttpPost(mEventPostUrl);
+    String body = Transport.encode(clientId, flushBuffer);
+    HttpPost httpPost = new HttpPost(eventPostUrl);
 
     try {
       StringEntity entity;
@@ -154,28 +169,18 @@ public class DefaultClientEngine implements TabaClientEngine {
       entity.setContentType("application/json");
       httpPost.setEntity(entity);
 
-      CloseableHttpResponse response = null;
-      try {
-        response = mHttpClient.execute(httpPost);
+      try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
         int statusCode = response.getStatusLine().getStatusCode();
         if (statusCode != 200) {
-          System.err.println(String.format("Bad status code: %d", statusCode));
+          logger.error(String.format("Bad status code: %d", statusCode));
         }
 
       } catch (IOException e) {
-        e.printStackTrace();
-      } finally {
-        try {
-          if (response != null) {
-            response.close();
-          }
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
+        logger.error("Error flushing Taba Client buffer", e);
       }
 
     } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
+      logger.error("Error encoding Taba Client buffer", e);
     }
 
   }

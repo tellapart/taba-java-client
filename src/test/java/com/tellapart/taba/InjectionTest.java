@@ -15,11 +15,10 @@
 package com.tellapart.taba;
 
 import com.google.inject.*;
+import com.tellapart.taba.engine.DummyClientEngine;
 import com.tellapart.taba.engine.TabaClientEngine;
-import com.tellapart.taba.inject.DummyClientEngineProvider;
-import com.tellapart.taba.inject.TabaApiProvider;
-import org.junit.Assert;
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 /**
  * Test cases for dependency injection style initialization.
@@ -30,32 +29,25 @@ public class InjectionTest {
 
     @Override
     public void configure(Binder binder) {
-
-      binder
-          .bind(TabaClientEngine.class)
-          .toProvider(DummyClientEngineProvider.class)
-          .in(Scopes.SINGLETON);
-
-      binder
-          .bind(TabaApi.class)
-          .toProvider(TabaApiProvider.class)
-          .in(Scopes.SINGLETON);
-
+      binder.bind(TabaClientEngine.class).to(DummyClientEngine.class).in(Scopes.SINGLETON);
+      binder.bind(TabaApi.class).in(Scopes.SINGLETON);
     }
 
     @Provides
-    TabaClientProperties GetClientProperties() {
+    TabaClientProperties getClientProperties() {
       return new TabaClientProperties("test_client_id", 1, "http://localhost:1234/post");
     }
 
   }
 
   public static class TestInjectee {
-    public TabaApi mApi;
+    public TabaApi api;
+
     @Inject
     public TestInjectee(TabaApi api) {
-      mApi = api;
+      this.api = api;
     }
+
   }
 
   @Test
@@ -71,7 +63,7 @@ public class InjectionTest {
     Injector injector = Guice.createInjector(new TestModule());
     TestInjectee injectee = injector.getInstance(TestInjectee.class);
     Assert.assertNotNull(injectee);
-    Assert.assertNotNull(injectee.mApi);
+    Assert.assertNotNull(injectee.api);
   }
 
 }

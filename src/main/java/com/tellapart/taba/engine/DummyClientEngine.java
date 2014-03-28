@@ -14,7 +14,10 @@
  */
 package com.tellapart.taba.engine;
 
+import com.tellapart.taba.TabaClientProperties;
 import com.tellapart.taba.event.EventPayload;
+
+import javax.inject.Inject;
 
 /**
  * Client Engine implementation that simply drops all events. Useful for
@@ -22,23 +25,24 @@ import com.tellapart.taba.event.EventPayload;
  */
 public class DummyClientEngine implements TabaClientEngine {
 
-  private String mClientId;
-  private int mFlushPeriod;
-  private String mEventPostUrl;
+  private String clientId;
+  private int flushPeriod;
+  private String eventPostUrl;
 
-  public DummyClientEngine(String clientId, int flushPeriod, String eventPostUrl) {
-    mClientId = clientId;
-    mFlushPeriod = flushPeriod;
-    mEventPostUrl = eventPostUrl;
+  @Inject
+  public DummyClientEngine(TabaClientProperties properties) {
+    this.clientId = properties.getClientId();
+    this.flushPeriod = properties.getFlushPeriod();
+    this.eventPostUrl = properties.getPostUrl();
   }
 
   @Override
-  public void Start() { }
+  public void start() { }
 
   @Override
-  public void Stop() { }
+  public void stop() { }
 
   @Override
-  public void RecordEvent(String name, String type, EventPayload payload) { }
+  public void recordEvent(String name, String type, EventPayload payload) { }
 
 }

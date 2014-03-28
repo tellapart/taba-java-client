@@ -14,6 +14,7 @@
  */
 package com.tellapart.taba;
 
+import com.google.common.base.Preconditions;
 import com.tellapart.taba.engine.DefaultClientEngine;
 import com.tellapart.taba.engine.TabaClientEngine;
 
@@ -23,27 +24,26 @@ import com.tellapart.taba.engine.TabaClientEngine;
  */
 public class TabaApiFactory {
 
-  protected static TabaClientEngine mEngine;
-  protected static TabaApi mApi;
+  protected static TabaClientEngine engine;
+  protected static TabaApi api;
 
   // Class is static only.
   private TabaApiFactory() {}
 
-  public static void Initialize(TabaClientProperties properties) {
-    TabaClientEngine engine = new DefaultClientEngine(
-        properties.GetClientId(),
-        properties.GetFlushPeriod(),
-        properties.GetPostUrl());
-    Initialize(engine);
+  public static synchronized void initialize(TabaClientProperties properties) {
+    Preconditions.checkState(engine == null, "Already initialized.");
+    TabaClientEngine clientEngine = new DefaultClientEngine(properties);
+    initialize(clientEngine);
   }
 
-  public static void Initialize(TabaClientEngine engine) {
-    mEngine = engine;
-    mApi = new TabaApi(mEngine);
+  public static synchronized void initialize(TabaClientEngine clientEngine) {
+    Preconditions.checkState(engine == null, "Already initialized.");
+    engine = clientEngine;
+    api = new TabaApi(engine);
   }
 
-  public static TabaApi GetApi() {
-    return mApi;
+  public static TabaApi getApi() {
+    return api;
   }
 
 }

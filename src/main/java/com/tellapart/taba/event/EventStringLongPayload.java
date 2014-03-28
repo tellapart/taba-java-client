@@ -24,19 +24,19 @@ import java.io.IOException;
  */
 public class EventStringLongPayload implements EventPayload {
 
-  private String mString;
-  private Long mLong;
+  private String payloadString;
+  private Long payloadLong;
 
   public EventStringLongPayload(String stringValue, Long longValue) {
-    mString = stringValue;
-    mLong = longValue;
+    payloadString = stringValue;
+    payloadLong = longValue;
   }
 
   @Override
-  public void Serialize(JsonGenerator generator) throws JsonGenerationException, IOException {
+  public void serialize(JsonGenerator generator) throws JsonGenerationException, IOException {
     generator.writeStartArray();
-    generator.writeString(mString);
-    generator.writeNumber(mLong);
+    generator.writeString(payloadString);
+    generator.writeNumber(payloadLong);
     generator.writeEndArray();
   }
 

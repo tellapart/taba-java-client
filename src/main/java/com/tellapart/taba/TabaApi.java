@@ -14,11 +14,14 @@
  */
 package com.tellapart.taba;
 
+import com.google.common.base.Preconditions;
 import com.tellapart.taba.engine.TabaClientEngine;
 import com.tellapart.taba.event.EventNumberPayload;
 import com.tellapart.taba.event.EventPayload;
 import com.tellapart.taba.event.EventStringLongPayload;
 import com.tellapart.taba.event.EventStringPayload;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 
@@ -32,69 +35,64 @@ import javax.inject.Inject;
  */
 public class TabaApi {
 
-  protected TabaClientEngine mEngine;
+  protected final TabaClientEngine engine;
 
   @Inject
   public TabaApi(TabaClientEngine engine) {
-    mEngine = engine;
+    Preconditions.checkNotNull(engine, "engine cannot be null");
+    this.engine = engine;
   }
 
   /*-------------------------------------------------------
    * Client Management
    *-----------------------------------------------------*/
 
-  public void Start() {
-    if(mEngine != null) {
-      mEngine.Start();
-    }
+  public void start() {
+    engine.start();
   }
 
-  public void Stop() {
-    if(mEngine != null) {
-      mEngine.Stop();
-    }
+  public void stop() {
+    engine.stop();
   }
 
   /*-------------------------------------------------------
    * Event Recording Methods and Convenience Wrappers
    *-----------------------------------------------------*/
 
-  public void RecordEvent(String name, String type, EventPayload payload) {
-    if(mEngine != null) {
-      mEngine.RecordEvent(name, type, payload);
-    }
+  public void recordEvent(String name, String type, EventPayload payload) {
+    engine.recordEvent(name, type, payload);
   }
 
-  public void RecordEvent(String name, TabType type, EventPayload payload) {
-    RecordEvent(name, type.toString(), payload);
+  public void recordEvent(String name, TabType type, EventPayload payload) {
+    recordEvent(name, type.toString(), payload);
   }
 
-  public void RecordCounter(String name, Number value) {
-    RecordEvent(name, TabType.CounterGroup, new EventNumberPayload(value));
+  public void recordCounter(String name, Number value) {
+    recordEvent(name, TabType.CounterGroup, new EventNumberPayload(value));
   }
 
   public void RecordCounter(String name) {
-    RecordCounter(name, 1);
+    recordCounter(name, 1);
   }
 
-  public void RecordPercentile(String name, Number value) {
-    RecordEvent(name, TabType.PercentileGroup, new EventNumberPayload(value));
+  public void recordPercentile(String name, Number value) {
+    recordEvent(name, TabType.PercentileGroup, new EventNumberPayload(value));
   }
 
-  public void RecordPercentile(String name) {
-    RecordPercentile(name, 1);
+  public void recordPercentile(String name) {
+    recordPercentile(name, 1);
   }
 
-  public void RecordGauge(String name, String value) {
-    RecordEvent(name, TabType.Gauge, new EventStringPayload(value));
+  public void recordGauge(String name, String value) {
+    recordEvent(name, TabType.Gauge, new EventStringPayload(value));
   }
 
-  public void RecordGauge(String name, String value, Long expiration) {
-    RecordEvent(name, TabType.ExpiryGauge, new EventStringLongPayload(value, expiration));
+  public void recordGauge(String name, String value, Long expiration) {
+    recordEvent(name, TabType.ExpiryGauge, new EventStringLongPayload(value, expiration));
   }
 
-  public void RecordBuffer(String name, String value) {
-    RecordEvent(name, TabType.Buffer, new EventStringPayload(value));
+  public void recordBuffer(String name, String value) {
+    recordEvent(name, TabType.Buffer, new EventStringPayload(value));
   }
 
 }
