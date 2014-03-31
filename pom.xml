@@ -10,6 +10,7 @@
 
   <build>
     <plugins>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -19,6 +20,9 @@
           <target>1.7</target>
         </configuration>
       </plugin>
+
+      <!-- TODO: Add License, Analyze, and Test plugins -->
+
     </plugins>
   </build>
 
