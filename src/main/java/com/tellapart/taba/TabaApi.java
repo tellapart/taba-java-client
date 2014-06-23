@@ -71,7 +71,7 @@ public class TabaApi {
     recordEvent(name, TabType.CounterGroup, new EventNumberPayload(value));
   }
 
-  public void RecordCounter(String name) {
+  public void recordCounter(String name) {
     recordCounter(name, 1);
   }
 
