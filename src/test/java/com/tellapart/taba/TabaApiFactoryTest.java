@@ -35,7 +35,7 @@ public class TabaApiFactoryTest {
   @Test
   public void testFactoryPropertiesInitialization() {
     TabaClientProperties properties = new TabaClientProperties(
-        "client_id", 1, "http://localhost:1234/post");
+        "client_id", 100, "http://localhost:1234/post");
 
     TabaApiFactory.initialize(properties);
 
@@ -46,7 +46,7 @@ public class TabaApiFactoryTest {
   @Test
   public void testFactoryEngineInitialization() {
     TabaClientProperties properties = new TabaClientProperties(
-        "client_id", 1, "http://localhost:1234/post");
+        "client_id", 100, "http://localhost:1234/post");
     TabaClientEngine engine = new DummyClientEngine(properties);
     TabaApiFactory.initialize(engine);
 

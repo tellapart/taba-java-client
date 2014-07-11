@@ -35,7 +35,7 @@ public class InjectionTest {
 
     @Provides
     TabaClientProperties getClientProperties() {
-      return new TabaClientProperties("test_client_id", 1, "http://localhost:1234/post");
+      return new TabaClientProperties("test_client_id", 100, "http://localhost:1234/post");
     }
 
   }

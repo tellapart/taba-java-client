@@ -1,0 +1,5 @@
+Version 0.1.1
+=============
+
+Changed the flush resolution to milliseconds. This changes how you instantiate
+the TabaClientProperties object.

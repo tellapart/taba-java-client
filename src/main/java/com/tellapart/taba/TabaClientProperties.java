@@ -14,7 +14,8 @@
  */
 package com.tellapart.taba;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Container class for variables needed to initialize TabaClientEngine objects.
@@ -22,16 +23,16 @@ import com.google.common.base.Preconditions;
 public class TabaClientProperties {
 
   protected final String clientId;
-  protected final int flushPeriod;
+  protected final long flushPeriodMillis;
   protected final String postUrl;
 
-  public TabaClientProperties(String clientId, int flushPeriod, String postUrl) {
-    Preconditions.checkNotNull(clientId, "clientId cannot be null");
-    Preconditions.checkArgument(flushPeriod > 0, "flushPeriod must be > 0");
-    Preconditions.checkNotNull(postUrl, "postUrl Trcannot be null");
+  public TabaClientProperties(String clientId, long flushPeriodMillis, String postUrl) {
+    checkNotNull(clientId, "clientId cannot be null");
+    checkArgument(flushPeriodMillis >= 100, "flushPeriodMillis must be >= 100ms");
+    checkNotNull(postUrl, "postUrl cannot be null");
 
     this.clientId = clientId;
-    this.flushPeriod = flushPeriod;
+    this.flushPeriodMillis = flushPeriodMillis;
     this.postUrl = postUrl;
   }
 
@@ -39,8 +40,8 @@ public class TabaClientProperties {
     return clientId;
   }
 
-  public int getFlushPeriod() {
-    return flushPeriod;
+  public long getFlushPeriodMillis() {
+    return flushPeriodMillis;
   }
 
   public String getPostUrl() {

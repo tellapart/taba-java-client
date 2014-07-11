@@ -23,7 +23,6 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +33,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -48,7 +46,7 @@ public class DefaultClientEngine implements TabaClientEngine {
   private final Logger logger = LoggerFactory.getLogger(DefaultClientEngine.class);
 
   private final String clientId;
-  private final int flushPeriod;
+  private final long flushPeriod;
   private final String eventPostUrl;
 
   private CloseableHttpClient httpClient;
@@ -67,7 +65,7 @@ public class DefaultClientEngine implements TabaClientEngine {
       ScheduledExecutorService executor
   ) {
     this.clientId = properties.getClientId();
-    this.flushPeriod = properties.getFlushPeriod();
+    this.flushPeriod = properties.getFlushPeriodMillis();
     this.eventPostUrl = properties.getPostUrl();
 
     httpClient = client;
@@ -93,7 +91,7 @@ public class DefaultClientEngine implements TabaClientEngine {
     };
 
     flusherHandle = flushScheduler.scheduleAtFixedRate(
-        flusher, flushPeriod, flushPeriod, TimeUnit.SECONDS);
+        flusher, flushPeriod, flushPeriod, TimeUnit.MILLISECONDS);
   }
 
   @Override

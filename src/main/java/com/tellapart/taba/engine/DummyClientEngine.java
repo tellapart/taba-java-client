@@ -26,13 +26,13 @@ import javax.inject.Inject;
 public class DummyClientEngine implements TabaClientEngine {
 
   private String clientId;
-  private int flushPeriod;
+  private long flushPeriodMillis;
   private String eventPostUrl;
 
   @Inject
   public DummyClientEngine(TabaClientProperties properties) {
     this.clientId = properties.getClientId();
-    this.flushPeriod = properties.getFlushPeriod();
+    this.flushPeriodMillis = properties.getFlushPeriodMillis();
     this.eventPostUrl = properties.getPostUrl();
   }
 
